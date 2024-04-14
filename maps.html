@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Google maps</title>
+        <style>
+            #map {
+                height: 400px;
+                width: 80%;
+                margin: 10px auto;
+            }
+            .directions-panel {
+                margin-top: 10px;
+                padding: 10px;
+                border: 1px solid #ccc;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div id="directions-panels"></div>
+        <script>
+            function initMap() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        var latitude = position.coords.latitude;
+                        var longitude = position.coords.longitude;
+
+                        var map = new google.maps.Map(document.getElementById("map"), {
+                            zoom: 7,
+                            center: { lat: latitude, lng: longitude },
+                            mapTypeId: google.maps.MapTypeId.ROADMAP
+                        }); 
+
+                        var directionsService = new google.maps.DirectionsService();
+
+                        // Define locations
+                        var locations = [
+                            { lat: 47.66936613582998, lng: -122.38119011953594, name: "Neighborcare Health at Ballard" },
+                            { lat: 47.66416477664679, lng: -122.3739768692072, name: "Ballard Food Bank" },
+                            { lat: 47.62623074148431, lng: -122.14926135502883, name: "Bellevue Family YMCA (Help end Period Poverty)" },
+                            { lat: 47.60562670378871, lng: -122.3328224912578, name: "Downtown Seattle YMCA (Help end Period Poverty)" },
+                            { lat: 47.60144877790588, lng: -122.32546145767088, name: "Seattle Clinical Research Center" }
+                        ];
+
+                        // Loop through locations
+                        locations.forEach(function(location, index) {
+                            var marker = new google.maps.Marker({
+                                position: { lat: location.lat, lng: location.lng },
+                                map: map,
+                                title: String.fromCharCode(65 + index) + ' - ' + location.name
+                            });
+
+                            // Create a new directions panel for each location
+                            var directionsPanel = document.createElement('div');
+                            directionsPanel.classList.add('directions-panel');
+                            directionsPanel.innerHTML = '<h3>' + location.name + '</h3>';
+                            document.getElementById('directions-panels').appendChild(directionsPanel);
+
+                            // Calculate and display route to the location
+                            var request = {
+                                origin: { lat: latitude, lng: longitude },
+                                destination: location,
+                                travelMode: google.maps.TravelMode.DRIVING
+                            };
+
+                            directionsService.route(request, function(result, status) {
+                                if (status == google.maps.DirectionsStatus.OK) {
+                                    var route = result.routes[0];
+                                    var totalDistance = route.legs[0].distance.text;
+                                    var totalDuration = route.legs[0].duration.text;
+                                    
+                                    var info = "Total distance: " + totalDistance + "<br>Total duration: " + totalDuration;
+                                    directionsPanel.innerHTML += info;
+
+                                    var directionsDisplay = new google.maps.DirectionsRenderer({
+                                        map: map,
+                                        panel: directionsPanel
+                                    });
+                                    directionsDisplay.setDirections(result);
+                                } else {
+                                    alert('Directions request failed due to ' + status);
+                                }
+                            });
+                        });
+                    });
+                } else {
+                    alert("Geolocation is not supported by your browser");
+                }
+            }
+        </script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBirP4sMrACIN973giw2cC8GI9QSo6vvpk&callback=initMap"></script>
+    </body>
+</html>
